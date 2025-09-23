@@ -4,7 +4,7 @@ import requests
 from db import engine
 
 API_KEY = "00ccf55498574b80ae2cd0e2f24af004"
-NEWS_URL = f"https://newsapi.org/v2/everything?q=all&apiKey=00ccf55498574b80ae2cd0e2f24af004"
+NEWS_URL = f"https://newsapi.org/v2/everything?q=all&language=es&apiKey=00ccf55498574b80ae2cd0e2f24af004"
 # NEWS_URL = f"https://newsapi.org/v2/top-headlines?language=en&apiKey={API_KEY}"
 
 def fetch_news_api():
@@ -59,4 +59,5 @@ def search_news(db, keywords, source=None):
 
     result = db.execute(text(query), params).mappings().all()
     return list(result)
+
 

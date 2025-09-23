@@ -25,25 +25,30 @@ def agente_preguntar(texto: str):
     prompt_news = ChatPromptTemplate.from_template("""
         Analiza el texto del usuario.
 
-        1. Si el texto es muy genérico (ej: "dime noticias", "qué pasó hoy", "muéstrame algo"), responde SOLO con:
-        Tu pregunta es muy general. ¿De qué tema específico quieres noticias? Ejemplos: política, deportes, tecnología.
+        Si el texto es malintencionado, ofensivo, violento, discriminatorio, ilegal o inmoral, responde SOLO con:
+        {{
+        "tipo": "MALINTENCIONADO"
+        }}
 
+        Si el texto es demasiado genérico, poco claro o ambiguo (ej: "dime noticias", "qué pasó hoy", "muéstrame algo"), responde SOLO con:
+        {{
+        "tipo": "AMBIGUA",
+        "keywords": ["palabra1", "palabra2", ...]  # Si logras rescatar algo, pon al menos 1 palabra clave
+        }}
 
-        2. Si el texto es suficientemente claro identifica la palabra clave principal para buscar en una API de noticias que está en inglés., responde en JSON con el formato:
+        Si el texto es válido y específico, responde con:
         {{
         "tipo": "ESPECIFICA",
         "keywords": ["palabra1", "palabra2", ...]
         }}
-        
-        Reglas adicionales:
-        - Las keywords deben estar en inglés (si el usuario escribe en español, tradúcelas).
+
+        Reglas adicionales para el caso ESPECIFICA o AMBIGUA:
+        - Las keywords deben estar en español (si el usuario escribe en inglés u otro idioma, tradúcelas).
         - Incluye entre 1 y 5 palabras relacionadas o sinónimos que ayuden a ampliar la búsqueda.
-        - Evita palabras genéricas como "news", "latest", "noticias".
         - Mantén las keywords cortas y relevantes (ej: politics, sports, technology, Trump).
 
-
         Texto: "{texto}"
-        """)
+    """)
     
     chain = prompt_news | llm
     result = chain.invoke({"texto": texto})
@@ -51,6 +56,31 @@ def agente_preguntar(texto: str):
 
     try:
         data = json.loads(respuesta)
+
+        # 🚨 Validación de malintencionado
+        if data.get("tipo") == "MALINTENCIONADO":
+            return "Lo siento, no puedo ayudarte o darte información interesante con el texto que me das, intenta con algo nuevo 😊"
+
+        # 🚨 Validación de ambigüedad
+        if data.get("tipo") == "AMBIGUA":
+            keywords = data.get("keywords", [])
+
+            if keywords:
+                resultados = query_api(keywords)
+                if resultados:
+                    resumen = "\n".join(
+                        [f"- {r['title']} (Fuente: {r['source']})" for r in resultados[:3]]
+                    )
+                    return f"🤖 Encontré algunas noticias relacionadas con {', '.join(keywords)}:\n\n{resumen}\n\n👉 Si me das más detalles, puedo darte información más interesante."
+            
+            # Si no hay keywords útiles o no devolvió resultados → noticias random
+            todos_resultados = query_api([])  # función que trae noticias sin filtro
+            random_news = random.sample(todos_resultados, min(3, len(todos_resultados)))
+            resumen_random = "\n".join(
+                [f"- {r['title']} (Fuente: {r['source']})" for r in random_news]
+            )
+            return f"🤖 No entendí bien tu tema, pero aquí tienes 3 noticias al azar:\n\n{resumen_random}\n\n👉 Dame más detalles y te mostraré noticias más relevantes."
+
         if data.get("tipo") == "ESPECIFICA":
             keywords = data["keywords"]
             resultados = query_api(keywords)
@@ -64,11 +94,52 @@ def agente_preguntar(texto: str):
             )
             return f"🤖 🔎 Encontré noticias sobre {', '.join(keywords)}:\n\n{resumen}"
 
+        # Si el JSON no tiene un tipo esperado
+        return "🤖 No entendí tu consulta, intenta con otro tema."
+
     except json.JSONDecodeError:
         # No era JSON → devolver mensaje genérico del LLM
         return {"message": respuesta}
+    
+# def agente_preguntar(texto: str):
+#     """Interpreta la pregunta, maneja ambigüedad y devuelve respuesta resumida."""
+#     prompt_news = ChatPromptTemplate.from_template("""
+#         Analiza el texto del usuario.
 
-    return respuesta
+#         {{
+#         "tipo": "ESPECIFICA",
+#         "keywords": ["palabra1", "palabra2", ...]
+#         }}
+        
+#         Reglas adicionales:
+#         - Las keywords deben estar en español (si el usuario escribe en ingles u otro idioma, tradúcelas).
+#         - Incluye entre 1 y 5 palabras relacionadas o sinónimos que ayuden a ampliar la búsqueda.
+#         - Mantén las keywords cortas y relevantes (ej: politics, sports, technology, Trump).
+        
+#         Texto: "{texto}"
+#         """)
+    
+#     chain = prompt_news | llm
+#     result = chain.invoke({"texto": texto})
+#     respuesta = result.content.strip()
+
+#     try:
+#         data = json.loads(respuesta)
+#         keywords = data["keywords"]
+#         resultados = query_api(keywords)
+
+#         if not resultados:
+#             return f"🤖 No encontré noticias relacionadas con {keywords}."
+
+#         # Tomar los 5 primeros resultados y resumirlos
+#         resumen = "\n".join(
+#             [f"- {r['title']} (Fuente: {r['source']})" for r in resultados[:5]]
+#         )
+#         return f"🤖 🔎 Encontré noticias sobre {', '.join(keywords)}:\n\n{resumen}"
+
+#     except json.JSONDecodeError:
+#         # No era JSON → devolver mensaje genérico del LLM
+#         return {"message": respuesta}
 
 
 

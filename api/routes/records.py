@@ -34,10 +34,11 @@ def get_record(record_id: int, db=Depends(get_db)):
         raise HTTPException(status_code=404, detail="Registro no encontrado")
     return result
 
-# @router.post("/records/update")
-# def update_records(token: str, db=Depends(get_db)):
-#     if token != "supersecret":
-#         raise HTTPException(status_code=403, detail="Token inválido")
-#     articles = fetch_news_api()
-#     insert_articles_no_duplicates(articles)
-#     return {"message": "Datos actualizados correctamente"}
+@router.post("/records/update")
+def update_records(token: str, db=Depends(get_db)):
+    if token != "supersecret":
+        raise HTTPException(status_code=403, detail="Token inválido")
+    articles = fetch_news_api()
+    print(len(articles), articles, " artículos obtenidos de NewsAPI")
+    insert_articles_no_duplicates(articles)
+    return {"message": "Datos actualizados correctamente"}
