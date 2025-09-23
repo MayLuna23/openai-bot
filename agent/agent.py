@@ -8,19 +8,6 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 
 API_URL = "http://localhost:8000"  # URL de tu API local
 
-# Diccionario de sinónimos/temas
-SINONIMOS = {
-    "política": ["politics", "government", "election"],
-    "tecnología": ["technology", "tech", "innovation", "software", "AI"],
-    "deportes": ["sports", "football", "soccer", "basketball", "tennis"],
-    "economía": ["economy", "finance", "business", "markets"],
-    "salud": ["health", "medicine", "covid", "wellness"],
-    "cultura": ["culture", "art", "music", "literature", "cinema"],
-    "trump": ["Trump", "Donald Trump"],
-    "biden": ["Biden", "Joe Biden"],
-}
-
-
 
 def query_api(keywords: list[str]):
     """Hace una búsqueda en la API local con múltiples palabras clave."""
@@ -47,56 +34,42 @@ def agente_preguntar(texto: str):
         "tipo": "ESPECIFICA",
         "keywords": ["palabra1", "palabra2", ...]
         }}
+        
+        Reglas adicionales:
+        - Las keywords deben estar en inglés (si el usuario escribe en español, tradúcelas).
+        - Incluye entre 1 y 5 palabras relacionadas o sinónimos que ayuden a ampliar la búsqueda.
+        - Evita palabras genéricas como "news", "latest", "noticias".
+        - Mantén las keywords cortas y relevantes (ej: politics, sports, technology, Trump).
+
 
         Texto: "{texto}"
         """)
     
     chain = prompt_news | llm
     result = chain.invoke({"texto": texto})
-    
-    # Guardar el contenido en una variable
     respuesta = result.content.strip()
 
     try:
         data = json.loads(respuesta)
         if data.get("tipo") == "ESPECIFICA":
-            return query_api(data["keywords"])
+            keywords = data["keywords"]
+            resultados = query_api(keywords)
+
+            if not resultados:
+                return f"🤖 No encontré noticias relacionadas con {keywords}."
+
+            # Tomar los 5 primeros resultados y resumirlos
+            resumen = "\n".join(
+                [f"- {r['title']} (Fuente: {r['source']})" for r in resultados[:5]]
+            )
+            return f"🤖 🔎 Encontré noticias sobre {', '.join(keywords)}:\n\n{resumen}"
+
     except json.JSONDecodeError:
-        # No era JSON → devolver mensaje genérico
+        # No era JSON → devolver mensaje genérico del LLM
         return {"message": respuesta}
-    
+
     return respuesta
 
-    # # Palabras demasiado genéricas
-    # genericas = ["noticias", "información", "cosas", "todo", "dame", "muéstrame"]
-
-    # # Si la pregunta es puramente genérica, pedimos aclaración
-    # if all(word.lower() in genericas for word in pregunta.lower().split()):
-    #     return "🤖 Tu pregunta es muy general. ¿De qué tema específico quieres noticias? Ejemplos: política, deportes, tecnología."
-
-    # Pedimos a OpenAI la palabra clave principal
-#     prompt_keyword = ChatPromptTemplate.from_template(
-#     "El usuario pregunta: {pregunta}. "
-#     "Identifica la palabra clave principal para buscar en una API de noticias que está en inglés. "
-#     "Responde SOLO con una palabra o frase corta en inglés, sin traducciones ni explicaciones."
-# )
-    
-
-    # chain_keyword = prompt_keyword | llm
-    # keyword = chain_keyword.invoke({"pregunta": pregunta}).content.strip()
-    # print("keyword", keyword)
-    # # Consultamos la API con búsqueda más flexible
-    # resultados = query_api(keyword)
-
-    # if not resultados:
-    #     return f"🤖 No encontré noticias relacionadas con '{keyword}'."
-
-    # # Tomamos los 5 primeros y resumimos
-    # resumen = "\n".join(
-    #     [f"- {r['title']} (Fuente: {r['source']})" for r in resultados[:5]]
-    # )
-
-    # return f"🤖 🔎 Busqué con la palabra clave '{keyword}'. Aquí tienes las 5 noticias más relevantes:\n\n{resumen}"
 
 
 if __name__ == "__main__":
@@ -106,3 +79,46 @@ if __name__ == "__main__":
             break
         respuesta = agente_preguntar(pregunta)
         print("\n", respuesta)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+# # Palabras demasiado genéricas
+# genericas = ["noticias", "información", "cosas", "todo", "dame", "muéstrame"]
+
+# # Si la pregunta es puramente genérica, pedimos aclaración
+# if all(word.lower() in genericas for word in pregunta.lower().split()):
+#     return "🤖 Tu pregunta es muy general. ¿De qué tema específico quieres noticias? Ejemplos: política, deportes, tecnología."
+
+# Pedimos a OpenAI la palabra clave principal
+#     prompt_keyword = ChatPromptTemplate.from_template(
+#     "El usuario pregunta: {pregunta}. "
+#     "Identifica la palabra clave principal para buscar en una API de noticias que está en inglés. "
+#     "Responde SOLO con una palabra o frase corta en inglés, sin traducciones ni explicaciones."
+# )
+
+
+# chain_keyword = prompt_keyword | llm
+# keyword = chain_keyword.invoke({"pregunta": pregunta}).content.strip()
+# print("keyword", keyword)
+# # Consultamos la API con búsqueda más flexible
+# resultados = query_api(keyword)
+
+# if not resultados:
+#     return f"🤖 No encontré noticias relacionadas con '{keyword}'."
+
+# # Tomamos los 5 primeros y resumimos
+# resumen = "\n".join(
+#     [f"- {r['title']} (Fuente: {r['source']})" for r in resultados[:5]]
+# )
+
+# return f"🤖 🔎 Busqué con la palabra clave '{keyword}'. Aquí tienes las 5 noticias más relevantes:\n\n{resumen}"
+

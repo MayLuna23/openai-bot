@@ -66,7 +66,6 @@ credentials.json
 
 # Database files
 *.sqlite3
-*.db
 *.db-journal
 
 # PyInstaller
@@ -92,7 +91,7 @@ cache/
 
 # OS files
 .DS_Store
-Thumbs.db
+
 
 # Eggs / wheels
 *.egg

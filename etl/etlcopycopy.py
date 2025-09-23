@@ -1,20 +1,11 @@
 import requests
 import pandas as pd
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 
 API_KEY = "00ccf55498574b80ae2cd0e2f24af004"
 URL = f"https://newsapi.org/v2/top-headlines?language=en&apiKey={API_KEY}"
 
-resp = requests.get(URL)
-data = resp.json()
 
-engine = create_engine("sqlite:///./news.db")  # o tu conexión
-with engine.begin() as conn:
-    for article in data["articles"]:
-        conn.execute(
-            text("INSERT INTO news (title, summary, source) VALUES (:t, :d, :s)"),
-            {"t": article["title"], "d": article["description"], "s": article["source"]["name"]}
-        )
 
 # Configura parámetros de la API
 params = {
