@@ -1,4 +1,5 @@
 import os, json
+import random
 import requests
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
@@ -101,47 +102,6 @@ def agente_preguntar(texto: str):
         # No era JSON → devolver mensaje genérico del LLM
         return {"message": respuesta}
     
-# def agente_preguntar(texto: str):
-#     """Interpreta la pregunta, maneja ambigüedad y devuelve respuesta resumida."""
-#     prompt_news = ChatPromptTemplate.from_template("""
-#         Analiza el texto del usuario.
-
-#         {{
-#         "tipo": "ESPECIFICA",
-#         "keywords": ["palabra1", "palabra2", ...]
-#         }}
-        
-#         Reglas adicionales:
-#         - Las keywords deben estar en español (si el usuario escribe en ingles u otro idioma, tradúcelas).
-#         - Incluye entre 1 y 5 palabras relacionadas o sinónimos que ayuden a ampliar la búsqueda.
-#         - Mantén las keywords cortas y relevantes (ej: politics, sports, technology, Trump).
-        
-#         Texto: "{texto}"
-#         """)
-    
-#     chain = prompt_news | llm
-#     result = chain.invoke({"texto": texto})
-#     respuesta = result.content.strip()
-
-#     try:
-#         data = json.loads(respuesta)
-#         keywords = data["keywords"]
-#         resultados = query_api(keywords)
-
-#         if not resultados:
-#             return f"🤖 No encontré noticias relacionadas con {keywords}."
-
-#         # Tomar los 5 primeros resultados y resumirlos
-#         resumen = "\n".join(
-#             [f"- {r['title']} (Fuente: {r['source']})" for r in resultados[:5]]
-#         )
-#         return f"🤖 🔎 Encontré noticias sobre {', '.join(keywords)}:\n\n{resumen}"
-
-#     except json.JSONDecodeError:
-#         # No era JSON → devolver mensaje genérico del LLM
-#         return {"message": respuesta}
-
-
 
 if __name__ == "__main__":
     while True:

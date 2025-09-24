@@ -1,9 +1,12 @@
-import requests
+import requests, os
 import pandas as pd
 from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
 
-API_KEY = "00ccf55498574b80ae2cd0e2f24af004"
-URL = f"https://newsapi.org/v2/top-headlines?language=en&apiKey={API_KEY}"
+load_dotenv()
+
+NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
+URL = f"https://newsapi.org/v2/top-headlines?language=en&apiKey={NEWSAPI_KEY}"
 
 resp = requests.get(URL)
 data = resp.json()
@@ -20,7 +23,7 @@ with engine.begin() as conn:
 params = {
     "country": "us",    # noticias de USA
     "pageSize": 100,    # trae 100 noticias
-    "apiKey": API_KEY
+    "apiKey": NEWSAPI_KEY
 }
 
 def fetch_data():

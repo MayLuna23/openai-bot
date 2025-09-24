@@ -17,7 +17,6 @@ def fetch_news_api():
         resp = requests.get(NEWS_URL, params=params)
         resp.raise_for_status()
         data = resp.json()
-        print(len(data["articles"])," artículos obtenidos de NewsAPI")
         return resp.json().get("articles", [])
     except Exception as e:
         print("Error al consultar NewsAPI:", e)
