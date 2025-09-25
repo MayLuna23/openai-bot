@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
 
-
-
 class ArticleBase(BaseModel):
     """Modelo base para artículos de noticias"""
     title: str

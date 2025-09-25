@@ -1,5 +1,9 @@
 # Prueba Técnica --- Proyecto ETL · API · Agente de IA
 
+# API KEY OPEN AI Para prueba tecnica
+Para correr el agente de Python debes pegar en el .env la OPENAI_API_KEY que se envia por correo
+no se adjunta en el codigo para evitar que se invalide
+
 **Resumen corto**\
 Proyecto que extrae datos públicos (ETL), los normaliza y almacena en
 una base local (SQLite), expone una API REST para consultar y actualizar
@@ -10,6 +14,7 @@ preguntas en lenguaje natural y consulta la API.
 
 ## Estructura del repositorio (resumen)
 
+```bash
 /
 ├── agent/
 │   └── main.py
@@ -22,8 +27,8 @@ preguntas en lenguaje natural y consulta la API.
 │   │   └── articles.py
 │   ├── services/
 │   │   └── records.py
-│   └── main.py
-│   └── db.py
+│   ├── main.py
+│   ├── db.py
 │   └── news.db
 ├── docs/
 │   └── security.md
@@ -34,6 +39,7 @@ preguntas en lenguaje natural y consulta la API.
 ├── .gitignore
 ├── README.md
 └── requirements.txt
+```
 
 ------------------------------------------------------------------------
 

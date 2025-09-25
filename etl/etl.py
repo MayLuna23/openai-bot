@@ -11,7 +11,7 @@ URL = f"https://newsapi.org/v2/top-headlines?language=en&apiKey={NEWSAPI_KEY}"
 resp = requests.get(URL)
 data = resp.json()
 
-engine = create_engine("sqlite:///./news.db")  # o tu conexión
+engine = create_engine("sqlite:///./news.db")
 with engine.begin() as conn:
     for article in data["articles"]:
         conn.execute(

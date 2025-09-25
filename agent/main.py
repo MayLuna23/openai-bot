@@ -3,16 +3,27 @@ import random
 import requests
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
+from dotenv import load_dotenv
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Configurar modelo de OpenAI
-llm = ChatOpenAI(model="gpt-4o-mini")
+llm = ChatOpenAI(model="gpt-4o-mini", api_key=OPENAI_API_KEY)
 
-API_URL = "http://localhost:8000"  # URL de tu API local
+API_URL = "http://localhost:8000"
 
 
 def query_api(keywords: list[str]):
     """Hace una búsqueda en la API local con múltiples palabras clave."""
     print(f"🔎 query_api: {keywords}")
+    
+    if keywords == []:
+        # Si no hay keywords, traer todas las noticias (para luego tomar random)
+        response = requests.get(f"{API_URL}/records")
+        if response.status_code == 200:
+            return response.json()
+        return []
+    
     response = requests.get(
         f"{API_URL}/records/search",
         params={"keyword": [kw.lower() for kw in keywords]}  # varias keywords
@@ -21,8 +32,13 @@ def query_api(keywords: list[str]):
         return response.json()
     return []
 
+
 def agente_preguntar(texto: str):
     """Interpreta la pregunta, maneja ambigüedad y devuelve respuesta resumida."""
+    
+    if texto.strip() == "":
+        return "Por favor, ingresa una pregunta o tema específico sobre noticias."
+    
     prompt_news = ChatPromptTemplate.from_template("""
         Analiza el texto del usuario.
 
@@ -58,11 +74,11 @@ def agente_preguntar(texto: str):
     try:
         data = json.loads(respuesta)
 
-        # 🚨 Validación de malintencionado
+        # Validación de malintencionado
         if data.get("tipo") == "MALINTENCIONADO":
             return "Lo siento, no puedo ayudarte o darte información interesante con el texto que me das, intenta con algo nuevo 😊"
 
-        # 🚨 Validación de ambigüedad
+        # Validación de ambigüedad
         if data.get("tipo") == "AMBIGUA":
             keywords = data.get("keywords", [])
 
@@ -80,7 +96,7 @@ def agente_preguntar(texto: str):
             resumen_random = "\n".join(
                 [f"- {r['title']} (Fuente: {r['source']})" for r in random_news]
             )
-            return f"🤖 No entendí bien tu tema, pero aquí tienes 3 noticias al azar:\n\n{resumen_random}\n\n👉 Dame más detalles y te mostraré noticias más relevantes."
+            return f"🤖 No encontré noticias con {keywords}, pero aquí tienes 3 noticias al azar:\n\n{resumen_random}\n\n👉 Dame más detalles y te mostraré noticias más relevantes."
 
         if data.get("tipo") == "ESPECIFICA":
             keywords = data["keywords"]
@@ -110,46 +126,3 @@ if __name__ == "__main__":
             break
         respuesta = agente_preguntar(pregunta)
         print("\n", respuesta)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-# # Palabras demasiado genéricas
-# genericas = ["noticias", "información", "cosas", "todo", "dame", "muéstrame"]
-
-# # Si la pregunta es puramente genérica, pedimos aclaración
-# if all(word.lower() in genericas for word in pregunta.lower().split()):
-#     return "🤖 Tu pregunta es muy general. ¿De qué tema específico quieres noticias? Ejemplos: política, deportes, tecnología."
-
-# Pedimos a OpenAI la palabra clave principal
-#     prompt_keyword = ChatPromptTemplate.from_template(
-#     "El usuario pregunta: {pregunta}. "
-#     "Identifica la palabra clave principal para buscar en una API de noticias que está en inglés. "
-#     "Responde SOLO con una palabra o frase corta en inglés, sin traducciones ni explicaciones."
-# )
-
-
-# chain_keyword = prompt_keyword | llm
-# keyword = chain_keyword.invoke({"pregunta": pregunta}).content.strip()
-# print("keyword", keyword)
-# # Consultamos la API con búsqueda más flexible
-# resultados = query_api(keyword)
-
-# if not resultados:
-#     return f"🤖 No encontré noticias relacionadas con '{keyword}'."
-
-# # Tomamos los 5 primeros y resumimos
-# resumen = "\n".join(
-#     [f"- {r['title']} (Fuente: {r['source']})" for r in resultados[:5]]
-# )
-
-# return f"🤖 🔎 Busqué con la palabra clave '{keyword}'. Aquí tienes las 5 noticias más relevantes:\n\n{resumen}"
-

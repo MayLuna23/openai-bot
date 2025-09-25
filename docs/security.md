@@ -73,18 +73,6 @@
 
 ## 4. Conclusión  
 
-- Nivel de riesgo: **medio-bajo**.  
-- Datos principalmente públicos, pero el uso de API y agente de IA introduce riesgos adicionales.  
-- Medidas ya aplicadas:  
-  - Token en actualización de datos.  
-  - Sanitización de entradas.  
-- Medidas prioritarias para producción:  
-  - **Rate limiting en la API**  
-  - **Encriptación de la base de datos**  
-  - **Monitoreo del uso de la API** para detectar anomalías  
-
-## 4. Conclusión  
-
 El nivel de riesgo identificado para este proyecto es **medio-bajo**, dado que los datos utilizados son principalmente públicos;  
 sin embargo, el uso de una API y un agente de IA introduce desafíos adicionales que requieren atención.  
 

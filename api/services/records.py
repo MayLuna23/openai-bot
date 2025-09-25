@@ -1,18 +1,15 @@
-# services/news_service.py
 from sqlalchemy import text
 import requests
 from db import engine
 
 API_KEY = "00ccf55498574b80ae2cd0e2f24af004"
 NEWS_URL = f"https://newsapi.org/v2/everything?q=all&language=es&apiKey=00ccf55498574b80ae2cd0e2f24af004"
-# NEWS_URL = f"https://newsapi.org/v2/top-headlines?language=en&apiKey={API_KEY}"
 
 def fetch_news_api():
     try:
-        # pageSize máximo permitido es 100
         params = {
             "pageSize": 100,
-            "page": 1,  # primera página
+            "page": 1,
         }
         resp = requests.get(NEWS_URL, params=params)
         resp.raise_for_status()

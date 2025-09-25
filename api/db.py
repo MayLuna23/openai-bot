@@ -1,9 +1,8 @@
-# db.py
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # Configuración de la base de datos SQLite
-DATABASE_URL = "sqlite:///./news.db"  # Ajusta la ruta según donde corras tu app
+DATABASE_URL = "sqlite:///./news.db"
 
 # Crear motor y sesión
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})

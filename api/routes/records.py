@@ -1,4 +1,3 @@
-# routes/news_routes.py
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Security
 from typing import List, Union, Optional
 from sqlalchemy import text
