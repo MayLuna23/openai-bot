@@ -54,7 +54,7 @@ def search_records(
     source: Optional[str] = Query(
         None,
         description="Nombre de la fuente",
-        example=""
+        example="Www.abc.es"
     ),
     db=Depends(get_db)
 ):
@@ -62,6 +62,41 @@ def search_records(
     results = search_news(db, keyword, source)
     logger.info(f"✅ {len(results)} resultados encontrados")
     return results
+
+
+@router.get(
+    "/records/update",
+    response_model=dict,
+    summary="Actualizar artículos desde NewsAPI",
+    description="""
+    Llama al servicio externo **NewsAPI** para obtener artículos recientes y los inserta
+    en la base de datos si no existen.
+    
+    **Seguridad:** requiere el token válido:`supersecret` (se deja expuesto con fines de prueba técnica).
+    """,
+    responses={
+        403: {"description": "Token inválido"},
+        200: {
+            "description": "Actualización exitosa",
+            "content": {
+                "application/json": {
+                    "example": {"message": "Datos actualizados correctamente"}
+                }
+            },
+        },
+    }
+)
+def update_records(token: str, db=Depends(get_db)):
+    if token != "supersecret":
+        logger.error("❌ Token inválido en actualización de artículos")
+        raise HTTPException(status_code=403, detail="Token inválido")
+    logger.info("🔄 Actualizando artículos desde NewsAPI...")
+    articles = fetch_news_api()
+    logger.info(f"📥 {len(articles)} artículos obtenidos de NewsAPI")
+    
+    insert_articles_no_duplicates(articles)
+    logger.info("✅ Base de datos actualizada con nuevos artículos")
+    return {"message": "Datos actualizados correctamente"}
 
 
 @router.get(
@@ -88,38 +123,3 @@ def get_record(
         raise HTTPException(status_code=404, detail="Registro no encontrado")
     logger.info(f"✅ Artículo con ID={record_id} encontrado")
     return result
-
-
-@router.post(
-    "/records/update",
-    response_model=dict,
-    summary="Actualizar artículos desde NewsAPI",
-    description="""
-    Llama al servicio externo **NewsAPI** para obtener artículos recientes y los inserta
-    en la base de datos si no existen.
-    
-    **Seguridad:** requiere el token válido:`supersecret` (con fines de prueba técnica).
-    """,
-    responses={
-        403: {"description": "Token inválido"},
-        200: {
-            "description": "Actualización exitosa",
-            "content": {
-                "application/json": {
-                    "example": {"message": "Datos actualizados correctamente"}
-                }
-            },
-        },
-    }
-)
-def update_records(token: str, db=Depends(get_db)):
-    if token != "supersecret":
-        logger.error("❌ Token inválido en actualización de artículos")
-        raise HTTPException(status_code=403, detail="Token inválido")
-    logger.info("🔄 Actualizando artículos desde NewsAPI...")
-    articles = fetch_news_api()
-    logger.info(f"📥 {len(articles)} artículos obtenidos de NewsAPI")
-    
-    insert_articles_no_duplicates(articles)
-    logger.info("✅ Base de datos actualizada con nuevos artículos")
-    return {"message": "Datos actualizados correctamente"}
